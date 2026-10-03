@@ -58,9 +58,16 @@ export function CompletePage({ jurisdiction, issues, onDownload, onKeepEditing, 
               <span className="font-medium">How the suggestions were handled</span>
               <Badge variant="secondary">{resolvedShare}% accepted or edited</Badge>
             </div>
-            <div className="flex h-3 overflow-hidden rounded-full bg-muted" role="img" aria-label="Resolved vs dismissed">
+            <div
+              className="flex h-3 overflow-hidden rounded-full bg-muted"
+              role="img"
+              aria-label="Resolved vs dismissed"
+            >
               <div className="bg-emerald-500 transition-[width] duration-700" style={{ width: `${resolvedShare}%` }} />
-              <div className="bg-slate-300 transition-[width] duration-700" style={{ width: `${100 - resolvedShare}%` }} />
+              <div
+                className="bg-slate-300 transition-[width] duration-700"
+                style={{ width: `${100 - resolvedShare}%` }}
+              />
             </div>
             <div className="flex gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">

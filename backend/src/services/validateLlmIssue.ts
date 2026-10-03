@@ -84,7 +84,7 @@ export function validateLlmIssueList(candidate: unknown): {
   if (!Array.isArray(candidate)) {
     return {
       validIssues: [],
-      invalidCount: 0,
+      invalidCount: 1,
       errorSamples: ["Top-level response was not an array."],
     };
   }

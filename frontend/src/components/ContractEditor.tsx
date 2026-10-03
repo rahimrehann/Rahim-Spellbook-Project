@@ -100,8 +100,7 @@ export function ContractEditor({
             <span key={i}>{segment.text}</span>
           )
         )}
-        {/* A trailing character keeps the layer as tall as the textarea when the text ends with a newline. */}
-        {" "}
+        {/* A trailing character keeps the layer as tall as the textarea when the text ends with a newline. */}{" "}
       </div>
 
       <textarea

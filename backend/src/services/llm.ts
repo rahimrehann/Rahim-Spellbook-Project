@@ -103,7 +103,9 @@ async function generateWithGroq(parts: LlmPart[]): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY is not set. Check backend/.env.");
   if (parts.some((part) => "inlineData" in part)) {
-    throw new Error("The Groq provider cannot read PDFs or images. Use LLM_PROVIDER=gemini or anthropic for scanned files.");
+    throw new Error(
+      "The Groq provider cannot read PDFs or images. Use LLM_PROVIDER=gemini or anthropic for scanned files."
+    );
   }
 
   const content = parts.map((part) => (part as { text: string }).text).join("\n");

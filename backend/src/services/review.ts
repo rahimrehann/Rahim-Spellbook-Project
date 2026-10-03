@@ -12,7 +12,15 @@ export async function createReview(text: string, location: string): Promise<Revi
   return issues.flatMap((raw) => {
     const found = locateQuote(text, raw.quote);
     if (!found) return [];
-    return [{ ...raw, id: randomUUID(), startOffset: found.startOffset, endOffset: found.endOffset, status: "pending" as const }];
+    return [
+      {
+        ...raw,
+        id: randomUUID(),
+        startOffset: found.startOffset,
+        endOffset: found.endOffset,
+        status: "pending" as const,
+      },
+    ];
   });
 }
 

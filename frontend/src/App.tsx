@@ -151,11 +151,7 @@ function App() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
-          <img
-            src="/avatar.png"
-            alt="Rahim"
-            className="size-16 rounded-xl border object-cover shadow-sm"
-          />
+          <img src="/avatar.png" alt="Rahim" className="size-16 rounded-xl border object-cover shadow-sm" />
           <div className="leading-tight">
             <p className="text-[15px] font-semibold tracking-tight">Rahim&apos;s Spellbook Project</p>
             <p className="text-xs text-muted-foreground">Flag Review · Contract review</p>
@@ -164,7 +160,10 @@ function App() {
       </header>
 
       {error && screen !== "start" && (
-        <p role="alert" className="mx-auto mt-4 max-w-7xl rounded-lg border border-red-200 bg-red-50 px-6 py-3 text-sm text-red-800">
+        <p
+          role="alert"
+          className="mx-auto mt-4 max-w-7xl rounded-lg border border-red-200 bg-red-50 px-6 py-3 text-sm text-red-800"
+        >
           {error}
         </p>
       )}

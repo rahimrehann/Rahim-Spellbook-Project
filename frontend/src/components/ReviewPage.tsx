@@ -76,9 +76,7 @@ export function ReviewPage({
           <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-2 shadow-sm">
             <ProgressRing done={handled} total={issues.length} />
             <div className="text-sm">
-              <p className="font-medium">
-                {pending.length === 0 ? "All handled" : `${pending.length} to review`}
-              </p>
+              <p className="font-medium">{pending.length === 0 ? "All handled" : `${pending.length} to review`}</p>
               <p className="text-muted-foreground">Issues handled</p>
             </div>
           </div>
