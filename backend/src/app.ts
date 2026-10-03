@@ -5,7 +5,7 @@ import { reviewsRouter } from "./routes/reviews";
 import { extractRouter } from "./routes/extract";
 import { JURISDICTIONS } from "./jurisdictions";
 
-export const app = express();
+const app = express();
 
 // Vercel and other hosts sit in front of the app, so use the forwarded client address.
 app.set("trust proxy", 1);
@@ -32,3 +32,5 @@ app.get("/api/jurisdictions", (_req, res) => {
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+export default app;

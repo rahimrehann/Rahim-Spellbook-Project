@@ -1,5 +1,5 @@
 import "dotenv/config"; // must be first: loads backend/.env before any other module reads process.env
-import { app } from "./app";
+import app from "./app";
 
 const PORT = process.env.PORT ?? 4000;
 

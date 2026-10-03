@@ -19,7 +19,7 @@ The server stores nothing. The browser holds the review state and sends it with 
 ```
 frontend/   React + TypeScript + Vite, styled with Tailwind CSS and shadcn/ui
 backend/    Express + TypeScript
-api/        Vercel entry point that runs the backend as a serverless function
+vercel.json Deploys frontend and backend as two services
 ```
 
 Backend layout:
@@ -43,10 +43,11 @@ Backend layout:
 Requirements: Node.js 22 (the version this was built and tested with), and an API key for at least one AI provider.
 
 ```bash
-npm install
-cp backend/.env.example backend/.env   # then fill in your keys
-npm run dev -w backend                 # API on http://localhost:4000
-npm run dev -w frontend                # app on http://localhost:5173
+cd backend && npm install && cp .env.example .env   # then fill in your keys
+npm run dev                                         # API on http://localhost:4000
+
+cd ../frontend && npm install                       # in a second terminal
+npm run dev                                         # app on http://localhost:5173
 ```
 
 Settings in `backend/.env`:
@@ -62,16 +63,23 @@ Settings in `backend/.env`:
 ## Tests
 
 ```bash
-npm test -w backend
+cd backend && npm test
 ```
 
 The tests cover quote location, applying suggestions, re-locating issues after edits, and validating model output.
 
 ## Deployment
 
-The app is deployed on Vercel. `vercel.json` builds the frontend into `frontend/dist`, and routes `/api` requests to the Express app in `api/index.ts`. Set the same variables as in `.env` in the Vercel project settings.
+The app is deployed to Vercel as a single project with two services, defined in `vercel.json`:
 
-Vercel limits request bodies to about 4.5 MB, so uploads are capped at 3 MB. Reviews can take 10 to 20 seconds, so the function timeout is set to 60 seconds, which requires a plan that allows it.
+- **frontend** (`frontend/`): the Vite build, served at `/`.
+- **backend** (`backend/src/app.ts`): the Express app, served under `/api`. Its functions get a 60-second limit, so the plan must allow it.
+
+Vercel needs the backend's runtime packages to be installed where the function runs, so `package.json` at the repo root lists them as well. Keep that list in sync with `backend/package.json` when dependencies change.
+
+Settings are read from Vercel's environment variables, so set the same names as in `backend/.env` in the project settings.
+
+Vercel limits request bodies to about 4.5 MB, so uploads are capped at 3 MB.
 
 ## Privacy
 
