@@ -1,3 +1,6 @@
+// Importing the worker explicitly makes sure it is bundled for serverless hosts,
+// where pdf.js cannot find it on disk.
+import "pdfjs-dist/legacy/build/pdf.worker.js";
 import { getDocument, VerbosityLevel } from "pdfjs-dist/legacy/build/pdf.js";
 import { generateText } from "./llm";
 
