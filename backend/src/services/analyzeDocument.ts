@@ -1,5 +1,5 @@
 import { RawLlmIssue } from "../types/issue";
-import { generateText } from "./gemini";
+import { generateText } from "./llm";
 import { validateLlmIssueList } from "./validateLlmIssue";
 
 const MAX_ATTEMPTS = 3;

@@ -65,7 +65,7 @@ export function ContractEditor({
   function selectIssueAtCaret() {
     const caret = textareaRef.current?.selectionStart ?? -1;
     const issue = pendingIssues.find((i) => caret >= i.startOffset && caret <= i.endOffset);
-    if (issue && issue._id !== activeIssueId) onSelectIssue(issue._id);
+    if (issue && issue.id !== activeIssueId) onSelectIssue(issue.id);
   }
 
   function syncScroll() {
@@ -86,10 +86,10 @@ export function ContractEditor({
         {segments.map((segment, i) =>
           segment.issue ? (
             <mark
-              key={segment.issue._id}
+              key={segment.issue.id}
               className={cn(
                 "rounded-sm text-transparent transition-colors",
-                segment.issue._id === activeIssueId
+                segment.issue.id === activeIssueId
                   ? "bg-indigo-300/70 shadow-[0_0_0_2px_var(--color-indigo-500)]"
                   : "bg-amber-200/80"
               )}

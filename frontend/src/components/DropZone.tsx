@@ -38,7 +38,7 @@ export function DropZone({ onFileSelected, disabled }: DropZoneProps) {
       <span className="font-medium">
         {disabled ? "Reading your file..." : "Drop a PDF or PNG here, or click to browse"}
       </span>
-      <span className="text-sm text-muted-foreground">Up to 10 MB. Text is extracted so you can edit it.</span>
+      <span className="text-sm text-muted-foreground">Up to 3 MB. Text is extracted so you can edit it.</span>
       <input
         type="file"
         accept="application/pdf,image/png"

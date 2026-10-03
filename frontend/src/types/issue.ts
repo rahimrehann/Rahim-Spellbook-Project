@@ -7,7 +7,7 @@ export interface LegalBasis {
 }
 
 export interface Issue {
-  _id: string;
+  id: string;
   quote: string;
   startOffset: number;
   endOffset: number;
@@ -18,8 +18,8 @@ export interface Issue {
   status: IssueStatus;
 }
 
-export interface DocumentResponse {
-  documentId: string;
+/** The review result. The browser keeps this and sends it back with each request. */
+export interface ReviewResult {
   text: string;
   jurisdiction: string;
   issues: Issue[];

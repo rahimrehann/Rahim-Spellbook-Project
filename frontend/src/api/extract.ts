@@ -1,4 +1,4 @@
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
 
 function readAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -15,7 +15,7 @@ function readAsBase64(file: File): Promise<string> {
 /** Uploads a PDF or PNG and returns the contract text found in it. */
 export async function extractTextFromFile(file: File): Promise<string> {
   if (file.size > MAX_UPLOAD_BYTES) {
-    throw new Error("That file is larger than 10 MB. Please upload a smaller file.");
+    throw new Error("That file is larger than 3 MB. Please upload a smaller file.");
   }
 
   const res = await fetch("/api/extract-text", {

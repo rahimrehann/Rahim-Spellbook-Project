@@ -1,5 +1,4 @@
 import { CheckCircle2, Download, FilePenLine, MapPin, RotateCcw } from "lucide-react";
-import { pdfUrl } from "@/api/documents";
 import { Issue } from "@/types/issue";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,9 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Disclaimer } from "./Disclaimer";
 
 interface CompletePageProps {
-  documentId: string;
   jurisdiction: string;
   issues: Issue[];
+  onDownload: () => void;
   onKeepEditing: () => void;
   onStartOver: () => void;
 }
@@ -30,7 +29,7 @@ function Stat({ label, value, tone }: StatProps) {
 }
 
 /** Step three: the summary of how every flagged issue was handled, and the download. */
-export function CompletePage({ documentId, jurisdiction, issues, onKeepEditing, onStartOver }: CompletePageProps) {
+export function CompletePage({ jurisdiction, issues, onDownload, onKeepEditing, onStartOver }: CompletePageProps) {
   const total = issues.length;
   const resolved = issues.filter((i) => i.status === "resolved").length;
   const dismissed = issues.filter((i) => i.status === "dismissed").length;
@@ -74,10 +73,8 @@ export function CompletePage({ documentId, jurisdiction, issues, onKeepEditing, 
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <a href={pdfUrl(documentId)} download>
-                <Download /> Download updated PDF
-              </a>
+            <Button size="lg" onClick={onDownload}>
+              <Download /> Download updated PDF
             </Button>
             <Button variant="outline" size="lg" onClick={onKeepEditing}>
               <FilePenLine /> Keep editing

@@ -44,8 +44,8 @@ export function ReviewPage({
 }: ReviewPageProps) {
   const pending = issues.filter((i) => i.status === "pending");
   const handled = issues.length - pending.length;
-  const activeIssue = issues.find((i) => i._id === activeIssueId) ?? null;
-  const activePosition = activeIssue ? pending.findIndex((i) => i._id === activeIssue._id) + 1 : 0;
+  const activeIssue = issues.find((i) => i.id === activeIssueId) ?? null;
+  const activePosition = activeIssue ? pending.findIndex((i) => i.id === activeIssue.id) + 1 : 0;
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-6 px-6 py-8">

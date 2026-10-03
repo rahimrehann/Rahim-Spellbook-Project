@@ -1,0 +1,11 @@
+{
+  "name": "rahim-spellbook-project",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build -w frontend"
+  }
+}

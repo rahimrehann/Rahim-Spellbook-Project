@@ -72,7 +72,7 @@ export function IssuePanel({ issue, position, total, busy, onAccept, onDismiss }
             disabled={busy}
             onClick={() => {
               setShowReasoning(false);
-              onDismiss(issue._id);
+              onDismiss(issue.id);
             }}
           >
             <X /> Dismiss
@@ -83,7 +83,7 @@ export function IssuePanel({ issue, position, total, busy, onAccept, onDismiss }
             className="bg-emerald-600 text-white hover:bg-emerald-700"
             onClick={() => {
               setShowReasoning(false);
-              onAccept(issue._id);
+              onAccept(issue.id);
             }}
           >
             <Check /> Accept

@@ -1,20 +1,34 @@
 import { useEffect, useRef, useState } from "react";
-import { Scale } from "lucide-react";
-import { acceptIssue, analyzeDocument, dismissIssue, saveText } from "@/api/documents";
+import { acceptSuggestion, downloadPdf, reviewContract, syncIssues } from "@/api/reviews";
 import { ContractSubmission, StartPage } from "@/components/StartPage";
 import { ReviewPage, SaveState } from "@/components/ReviewPage";
 import { CompletePage } from "@/components/CompletePage";
-import { DocumentResponse, Issue } from "@/types/issue";
+import { BrandLogo } from "@/components/BrandLogo";
+import { Issue } from "@/types/issue";
 
 type Screen = "start" | "review" | "complete";
 
-const SAVE_DELAY_MS = 700;
+const SYNC_DELAY_MS = 700;
 
 const firstPending = (issues: Issue[]) => issues.find((i) => i.status === "pending") ?? null;
 
+/**
+ * Takes the server's re-located offsets and statuses for pending issues,
+ * while keeping any dismissal the user made while the request was in flight.
+ */
+function mergeSynced(current: Issue[], synced: Issue[]): Issue[] {
+  const syncedById = new Map(synced.map((issue) => [issue.id, issue]));
+  return current.map((issue) => {
+    const update = syncedById.get(issue.id);
+    if (!update || issue.status !== "pending") return issue;
+    return { ...issue, startOffset: update.startOffset, endOffset: update.endOffset, status: update.status };
+  });
+}
+
 function App() {
   const [screen, setScreen] = useState<Screen>("start");
-  const [doc, setDoc] = useState<DocumentResponse | null>(null);
+  const [jurisdiction, setJurisdiction] = useState("");
+  const [issues, setIssues] = useState<Issue[]>([]);
   const [draftText, setDraftText] = useState("");
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveState>("saved");
@@ -22,19 +36,26 @@ function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // The latest draft lives in a ref so the delayed save always sends what the user last typed.
+  // Refs hold the latest values so delayed and in-flight requests never send stale state.
   const draftRef = useRef("");
-  const saveTimer = useRef<number | undefined>(undefined);
+  const issuesRef = useRef<Issue[]>([]);
+  const syncTimer = useRef<number | undefined>(undefined);
 
-  useEffect(() => () => window.clearTimeout(saveTimer.current), []);
+  useEffect(() => () => window.clearTimeout(syncTimer.current), []);
 
-  /** Saves the current draft and refreshes the issue offsets it changed. */
-  async function saveDraft(documentId: string) {
-    window.clearTimeout(saveTimer.current);
+  function setIssueList(next: Issue[]) {
+    issuesRef.current = next;
+    setIssues(next);
+  }
+
+  /** Re-locates the pending issues against the latest text. */
+  async function syncDraft() {
+    window.clearTimeout(syncTimer.current);
     const sentText = draftRef.current;
+    const sentIssues = issuesRef.current;
     setSaveState("saving");
-    const result = await saveText(documentId, sentText);
-    setDoc((prev) => (prev ? { ...prev, issues: result.issues } : prev));
+    const synced = await syncIssues(sentText, sentIssues);
+    setIssueList(mergeSynced(issuesRef.current, synced));
     // Only mark saved if the user did not type again while the request was in flight.
     if (draftRef.current === sentText) setSaveState("saved");
   }
@@ -43,22 +64,23 @@ function App() {
     draftRef.current = text;
     setDraftText(text);
     setSaveState("unsaved");
-    window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {
-      if (doc) saveDraft(doc.documentId).catch(() => setSaveState("unsaved"));
-    }, SAVE_DELAY_MS);
+    window.clearTimeout(syncTimer.current);
+    syncTimer.current = window.setTimeout(() => {
+      syncDraft().catch(() => setSaveState("unsaved"));
+    }, SYNC_DELAY_MS);
   }
 
   async function handleReview({ text, country, region }: ContractSubmission) {
     setIsLoading(true);
     setError(null);
     try {
-      const result = await analyzeDocument(text, country, region);
-      setDoc(result);
-      setDraftText(result.text);
+      const result = await reviewContract(text, country, region);
+      setJurisdiction(result.jurisdiction);
       draftRef.current = result.text;
+      setDraftText(result.text);
+      setIssueList(result.issues);
       setSaveState("saved");
-      setActiveIssueId(firstPending(result.issues)?._id ?? null);
+      setActiveIssueId(firstPending(result.issues)?.id ?? null);
       setScreen(firstPending(result.issues) ? "review" : "complete");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -67,38 +89,54 @@ function App() {
     }
   }
 
-  /** Accepts or dismisses an issue. Unsaved edits are saved first so the offsets match the server text. */
-  async function handleIssueAction(issueId: string, action: "accept" | "dismiss") {
-    if (!doc) return;
+  function advanceAfter(next: Issue[]) {
+    const nextPending = firstPending(next);
+    setActiveIssueId(nextPending?.id ?? null);
+    if (!nextPending) setScreen("complete");
+  }
+
+  /** Applies a suggestion. The server re-locates the issues in the text it receives. */
+  async function handleAccept(issueId: string) {
     setBusy(true);
     setError(null);
+    window.clearTimeout(syncTimer.current);
     try {
-      if (saveState !== "saved") await saveDraft(doc.documentId);
-      const result =
-        action === "accept"
-          ? await acceptIssue(doc.documentId, issueId)
-          : await dismissIssue(doc.documentId, issueId);
-
-      setDoc(result);
-      setDraftText(result.text);
+      const result = await acceptSuggestion(draftRef.current, issuesRef.current, issueId);
       draftRef.current = result.text;
+      setDraftText(result.text);
+      setIssueList(result.issues);
       setSaveState("saved");
-
-      const next = firstPending(result.issues);
-      setActiveIssueId(next?._id ?? null);
-      if (!next) setScreen("complete");
+      advanceAfter(result.issues);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update the issue.");
+      setError(err instanceof Error ? err.message : "Failed to apply the suggestion.");
     } finally {
       setBusy(false);
     }
   }
 
+  /** Dismissing only changes the browser's copy, so it needs no request. */
+  function handleDismiss(issueId: string) {
+    const next = issuesRef.current.map((issue) =>
+      issue.id === issueId ? { ...issue, status: "dismissed" as const } : issue
+    );
+    setIssueList(next);
+    advanceAfter(next);
+  }
+
+  async function handleDownload() {
+    setError(null);
+    try {
+      await downloadPdf(draftRef.current);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create the PDF.");
+    }
+  }
+
   function startOver() {
-    window.clearTimeout(saveTimer.current);
-    setDoc(null);
-    setDraftText("");
+    window.clearTimeout(syncTimer.current);
     draftRef.current = "";
+    setDraftText("");
+    setIssueList([]);
     setActiveIssueId(null);
     setSaveState("saved");
     setError(null);
@@ -106,19 +144,21 @@ function App() {
   }
 
   function keepEditing() {
-    if (!doc) return;
-    setActiveIssueId(firstPending(doc.issues)?._id ?? null);
+    setActiveIssueId(firstPending(issuesRef.current)?.id ?? null);
     setScreen("review");
   }
 
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center gap-2.5 px-6 py-3.5">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Scale className="size-4" />
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
+          <span className="flex size-10 items-center justify-center rounded-xl border bg-white shadow-sm">
+            <BrandLogo className="size-5" />
           </span>
-          <span className="font-semibold tracking-tight">Flag Review</span>
+          <div className="leading-tight">
+            <p className="text-[15px] font-semibold tracking-tight">Rahim&apos;s Spellbook Project</p>
+            <p className="text-xs text-muted-foreground">Flag Review · Contract review</p>
+          </div>
         </div>
       </header>
 
@@ -130,27 +170,27 @@ function App() {
 
       {screen === "start" && <StartPage onSubmit={handleReview} isLoading={isLoading} error={error} />}
 
-      {screen === "review" && doc && (
+      {screen === "review" && (
         <ReviewPage
-          jurisdiction={doc.jurisdiction}
+          jurisdiction={jurisdiction}
           draftText={draftText}
-          issues={doc.issues}
+          issues={issues}
           activeIssueId={activeIssueId}
           saveState={saveState}
           busy={busy}
           onTextChange={handleTextChange}
           onSelectIssue={setActiveIssueId}
-          onAccept={(id) => handleIssueAction(id, "accept")}
-          onDismiss={(id) => handleIssueAction(id, "dismiss")}
+          onAccept={handleAccept}
+          onDismiss={handleDismiss}
           onBack={startOver}
         />
       )}
 
-      {screen === "complete" && doc && (
+      {screen === "complete" && (
         <CompletePage
-          documentId={doc.documentId}
-          jurisdiction={doc.jurisdiction}
-          issues={doc.issues}
+          jurisdiction={jurisdiction}
+          issues={issues}
+          onDownload={handleDownload}
           onKeepEditing={keepEditing}
           onStartOver={startOver}
         />
