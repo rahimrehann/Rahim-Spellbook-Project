@@ -154,7 +154,7 @@ function App() {
           <img
             src="/avatar.png"
             alt="Rahim"
-            className="size-12 rounded-full border object-cover shadow-sm"
+            className="size-16 rounded-xl border object-cover shadow-sm"
           />
           <div className="leading-tight">
             <p className="text-[15px] font-semibold tracking-tight">Rahim&apos;s Spellbook Project</p>
