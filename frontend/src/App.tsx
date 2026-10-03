@@ -3,7 +3,6 @@ import { acceptSuggestion, downloadPdf, reviewContract, syncIssues } from "@/api
 import { ContractSubmission, StartPage } from "@/components/StartPage";
 import { ReviewPage, SaveState } from "@/components/ReviewPage";
 import { CompletePage } from "@/components/CompletePage";
-import { BrandLogo } from "@/components/BrandLogo";
 import { Issue } from "@/types/issue";
 
 type Screen = "start" | "review" | "complete";
@@ -152,9 +151,11 @@ function App() {
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-6 py-3">
-          <span className="flex size-10 items-center justify-center rounded-xl border bg-white shadow-sm">
-            <BrandLogo className="size-5" />
-          </span>
+          <img
+            src="/avatar.png"
+            alt="Rahim"
+            className="size-12 rounded-full border object-cover shadow-sm"
+          />
           <div className="leading-tight">
             <p className="text-[15px] font-semibold tracking-tight">Rahim&apos;s Spellbook Project</p>
             <p className="text-xs text-muted-foreground">Flag Review · Contract review</p>
